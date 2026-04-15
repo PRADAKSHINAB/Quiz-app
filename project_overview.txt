@@ -1,0 +1,34 @@
+Project Overview: Quiz-app
+
+1. Folder Structure:
+-------------------
+- /frontend: Next.js 14 application using the App Router.
+  - /src/app: Contains pages and layouts (dashboard, quiz, login, etc.).
+  - /src/components: Reusable React components (UI elements, header, etc.).
+  - /src/lib: Core logic for API calls, authentication, and utilities.
+- /backend: Express.js server providing the REST API.
+  - /models: Mongoose schemas defining data structures (User, Quiz, Topic, etc.).
+  - server.js: Main server file handling routing, database connection, and auth middleware.
+- /lib: Shared utility functions and database connection logic.
+- /app: Additional top-level application components/pages.
+- run-dev.js: Root script to launch both frontend and backend development servers.
+
+2. Technologies Used:
+---------------------
+- Frontend: Next.js 14, React 18, Tailwind CSS, Radix UI, Lucide Icons, Recharts (for progress).
+- Backend: Node.js, Express.js, MongoDB, Mongoose (ODM).
+- Authentication: JSON Web Tokens (JWT), Bcrypt (password hashing).
+- Development: Nodemon (backend auto-restart), Concurrent script execution.
+
+3. Data Flow (Frontend -> Backend -> Database):
+-----------------------------------------------
+- Frontend: User actions trigger API calls via 'frontend/src/lib/api.js' using the 'fetch' API.
+- Authentication: Requests include a JWT in the 'Authorization' header for secured routes.
+- Backend: Express receives requests in 'backend/server.js'. Middleware verifies tokens and parses JSON bodies.
+- Processing: Route handlers use Mongoose models to perform CRUD operations on the database.
+- Database: MongoDB (NoSQL) stores persistent data like user profiles, quiz content, and scores.
+- Response: Backend sends JSON data back to the frontend, which updates the React state and UI.
+
+4. Project Summary:
+-------------------
+The Quiz-app is a comprehensive full-stack platform for interactive learning. It enables users to create custom quizzes with multiple-choice questions, categorize them by topics (Science, Tech, History, etc.), and track their performance over time. Key features include a secure authentication system, a dashboard for progress visualization, time-limited quiz sessions, and the ability to share quizzes via unique IDs. The application provides a modern, responsive interface with dark/light mode support.

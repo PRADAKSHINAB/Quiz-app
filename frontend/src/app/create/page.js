@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { PlusCircle, Trash2, Save, AlertCircle, Share2 } from "lucide-react"
+import { PlusCircle, Trash2, Save, AlertCircle, Share2, Sparkles, Wand2, CheckCircle, Loader2 } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -62,9 +62,12 @@ export default function CreateQuizPage() {
       try {
         const topicsData = await getAllTopics()
         setTopics(topicsData)
-        // Set default topic if available
+        // Set default topic if available and not already set
         if (topicsData.length > 0) {
-          setQuizData(prev => ({ ...prev, topic: topicsData[0].name }))
+          setQuizData(prev => {
+            if (prev.topic) return prev;
+            return { ...prev, topic: topicsData[0].name };
+          })
         }
       } catch (error) {
         console.error("Error fetching topics:", error)
@@ -327,87 +330,94 @@ export default function CreateQuizPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-cyan-50">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <div className="orb orb-1" />
+      <div className="orb orb-2" />
       <Header />
 
-      <div className="container max-w-4xl py-8 space-y-8 animate-fadeIn">
+      <div className="container max-w-4xl py-8 space-y-8 relative z-10 animate-fadeIn">
         {!quizCreated ? (
           <>
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-teal-800">Create New Quiz</h1>
-              <p className="text-teal-600">
-                Fill in the details below to create your quiz. Add as many questions as you like.
+              <h1 className="text-3xl md:text-4xl font-bold font-display tracking-tight text-foreground">Create New Quiz</h1>
+              <p className="text-muted-foreground">
+                Fill in the details below to create your quiz. Add as many questions as you like or use the AI generator.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
-              <Card className="transition-all duration-300 hover:shadow-md border-teal-100">
-                <CardHeader>
-                  <CardTitle className="text-teal-800">AI Question Generator</CardTitle>
-                  <CardDescription className="text-teal-600">
-                    Type a prompt like: &quot;Give 10 in GK for class 10&quot;
-                  </CardDescription>
+              <Card className="glass-card rounded-2xl overflow-hidden border-0 shadow-none">
+                <CardHeader className="bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border-b border-border/50">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
+                      <Sparkles className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">AI Question Generator</CardTitle>
+                      <CardDescription>Type a prompt like: &quot;Give 10 in GK for class 10&quot;</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 pt-6">
                   <div className="space-y-2">
-                    <Label htmlFor="aiPrompt" className="text-teal-700">
+                    <Label htmlFor="aiPrompt">
                       Prompt
                     </Label>
                     <Textarea
                       id="aiPrompt"
                       value={aiPrompt}
                       onChange={(e) => setAiPrompt(e.target.value)}
-                      className="min-h-[80px] border-teal-200 focus:border-teal-500 focus:ring-teal-500/20"
+                      className="min-h-[80px] rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-teal-700">Topic</Label>
+                      <Label>Topic</Label>
                       <Select
                         value={aiTopic}
-                        onChange={(e) => setAiTopic(e.target.value)}
-                        className="border-teal-200 focus:border-teal-500 focus:ring-teal-500/20"
+                        onValueChange={(value) => setAiTopic(value)}
+                        className="rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                       >
                         <option value="">Use quiz topic</option>
                         {topics.map((topic) => (
                           <option key={topic._id || topic.slug || topic.name} value={topic.name}>
-                            {topic.icon} {topic.name}
+                             {topic.name}
                           </option>
                         ))}
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-teal-700">Count</Label>
+                      <Label>Count</Label>
                       <Input
                         type="number"
                         min="1"
                         max="50"
                         value={aiCount}
                         onChange={(e) => setAiCount(Number.parseInt(e.target.value || "10", 10))}
-                        className="border-teal-200 focus:border-teal-500 focus:ring-teal-500/20"
+                        className="rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-teal-700">Class</Label>
+                      <Label>Class</Label>
                       <Input
                         type="number"
                         min="1"
                         max="12"
                         value={aiGrade}
                         onChange={(e) => setAiGrade(Number.parseInt(e.target.value || "10", 10))}
-                        className="border-teal-200 focus:border-teal-500 focus:ring-teal-500/20"
+                        className="rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-teal-700">Difficulty</Label>
+                      <Label>Difficulty</Label>
                       <Select
                         value={aiDifficulty}
-                        onChange={(e) => setAiDifficulty(e.target.value)}
-                        className="border-teal-200 focus:border-teal-500 focus:ring-teal-500/20"
+                        onValueChange={(value) => setAiDifficulty(value)}
+                        className="rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                       >
                         <option value="Easy">Easy</option>
                         <option value="Medium">Medium</option>
@@ -416,47 +426,48 @@ export default function CreateQuizPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-3 pt-2">
                     <Button
                       type="button"
                       onClick={handleGenerateAi}
                       disabled={aiLoading}
-                      className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
+                      className="rounded-xl bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white shadow-lg shadow-violet-500/25 transition-all duration-300"
                     >
-                      {aiLoading ? "Generating..." : "Generate"}
+                      {aiLoading ? "Generating..." : "Generate with AI"}
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
                       disabled={!aiResult?.questions?.length}
                       onClick={() => applyAiToQuiz("replace")}
-                      className="border-teal-200 text-teal-700 hover:bg-teal-50"
+                      className="rounded-xl border-violet-200 dark:border-violet-800 hover:bg-violet-50 dark:hover:bg-violet-500/10 text-violet-600 dark:text-violet-400"
                     >
-                      Use Questions (Replace)
+                      Replace All
                     </Button>
                     <Button
                       type="button"
                       variant="outline"
                       disabled={!aiResult?.questions?.length}
                       onClick={() => applyAiToQuiz("append")}
-                      className="border-teal-200 text-teal-700 hover:bg-teal-50"
+                      className="rounded-xl border-cyan-200 dark:border-cyan-800 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"
                     >
-                      Add Questions
+                      Add to Existing
                     </Button>
                   </div>
 
                   {aiResult?.questions?.length > 0 && (
-                    <div className="space-y-3">
-                      <div className="text-sm text-teal-700">
-                        Generated: {aiResult.questions.length} questions for {aiResult.topic}
+                    <div className="space-y-3 mt-4">
+                      <div className="flex items-center gap-2 text-sm font-medium text-violet-600 dark:text-violet-400">
+                        <CheckCircle className="h-4 w-4" />
+                        Generated {aiResult.questions.length} questions for {aiResult.topic}
                       </div>
-                      <div className="space-y-2">
-                        {aiResult.questions.slice(0, 5).map((q, i) => (
-                          <div key={i} className="p-3 rounded-md border border-teal-100 bg-teal-50/40">
-                            <div className="font-medium text-teal-800">{i + 1}. {q.question}</div>
-                            <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-teal-700">
+                      <div className="space-y-3">
+                        {aiResult.questions.slice(0, 3).map((q, i) => (
+                          <div key={i} className="p-4 rounded-xl border border-violet-100 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-500/5 text-sm">
+                            <div className="font-medium mb-2">{i + 1}. {q.question}</div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-muted-foreground">
                               {(q.options || []).slice(0, 4).map((opt, idx) => (
-                                <div key={idx} className={idx === q.correctAnswer ? "font-semibold" : ""}>
+                                <div key={idx} className={idx === q.correctAnswer ? "font-semibold text-emerald-600 dark:text-emerald-400" : ""}>
                                   {String.fromCharCode(65 + idx)}. {opt}
                                 </div>
                               ))}
@@ -464,8 +475,8 @@ export default function CreateQuizPage() {
                           </div>
                         ))}
                       </div>
-                      {aiResult.questions.length > 5 && (
-                        <div className="text-xs text-teal-600">Showing first 5 questions</div>
+                      {aiResult.questions.length > 3 && (
+                        <div className="text-xs text-muted-foreground text-center">Sneak peek showing first 3 questions</div>
                       )}
                     </div>
                   )}
@@ -473,14 +484,14 @@ export default function CreateQuizPage() {
               </Card>
 
               {/* Quiz Details */}
-              <Card className="transition-all duration-300 hover:shadow-md border-teal-100">
+              <Card className="glass-card rounded-2xl overflow-hidden border-0 shadow-none">
                 <CardHeader>
-                  <CardTitle className="text-teal-800">Quiz Details</CardTitle>
-                  <CardDescription className="text-teal-600">Basic information about your quiz</CardDescription>
+                  <CardTitle className="text-lg">Quiz Details</CardTitle>
+                  <CardDescription>Basic information about your quiz</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title" className="text-teal-700">
+                    <Label htmlFor="title">
                       Quiz Title <span className="text-red-500">*</span>
                     </Label>
                     <Input
@@ -489,37 +500,37 @@ export default function CreateQuizPage() {
                       value={quizData.title}
                       onChange={handleInputChange}
                       placeholder="Enter quiz title"
-                      className={`border-teal-200 focus:border-teal-500 focus:ring-teal-500/20 ${errors.title ? "border-red-500" : ""}`}
+                      className={`rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 ${errors.title ? "border-red-500 focus:ring-red-500/30 focus:border-red-500" : ""}`}
                     />
-                    {errors.title && <p className="text-sm text-red-500">{errors.title}</p>}
+                    {errors.title && <p className="text-sm text-red-500 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-red-500" />{errors.title}</p>}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="topic" className="text-teal-700">
+                      <Label htmlFor="topic">
                         Topic <span className="text-red-500">*</span>
                       </Label>
                       <Select
                         value={quizData.topic}
-                        onChange={(e) => handleSelectChange("topic", e.target.value)}
-                        className={`border-teal-200 focus:border-teal-500 focus:ring-teal-500/20 ${errors.topic ? "border-red-500" : ""}`}
+                        onValueChange={(value) => handleSelectChange("topic", value)}
+                        className={`rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 ${errors.topic ? "border-red-500 focus:ring-red-500/30 focus:border-red-500" : ""}`}
                       >
                         <option value="">Select a topic</option>
                         {topics.map((topic) => (
                           <option key={topic._id || topic.slug || topic.name} value={topic.name}>
-                            {topic.icon} {topic.name}
+                             {topic.name}
                           </option>
                         ))}
                       </Select>
-                      {errors.topic && <p className="text-sm text-red-500">{errors.topic}</p>}
+                      {errors.topic && <p className="text-sm text-red-500 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-red-500" />{errors.topic}</p>}
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="difficulty" className="text-teal-700">Difficulty</Label>
+                      <Label htmlFor="difficulty">Difficulty</Label>
                       <Select
                         value={quizData.difficulty}
-                        onChange={(e) => handleSelectChange("difficulty", e.target.value)}
-                        className="border-teal-200 focus:border-teal-500 focus:ring-teal-500/20"
+                        onValueChange={(value) => handleSelectChange("difficulty", value)}
+                        className="rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                       >
                         <option value="Easy">Easy</option>
                         <option value="Medium">Medium</option>
@@ -529,7 +540,7 @@ export default function CreateQuizPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="timeLimit" className="text-teal-700">Time Limit (minutes)</Label>
+                    <Label htmlFor="timeLimit">Time Limit (minutes)</Label>
                     <Input
                       id="timeLimit"
                       name="timeLimit"
@@ -539,13 +550,13 @@ export default function CreateQuizPage() {
                       value={quizData.timeLimit / 60}
                       onChange={(e) => handleInputChange({ target: { name: "timeLimit", value: e.target.value * 60 } })}
                       placeholder="10"
-                      className="border-teal-200 focus:border-teal-500 focus:ring-teal-500/20"
+                      className="rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                     />
-                    <p className="text-xs text-teal-600">Maximum time allowed for the quiz (1-120 minutes)</p>
+                    <p className="text-xs text-muted-foreground">Maximum time allowed for the quiz (1-120 minutes)</p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="text-teal-700">
+                    <Label htmlFor="description">
                       Description
                     </Label>
                     <Textarea
@@ -554,235 +565,216 @@ export default function CreateQuizPage() {
                       value={quizData.description}
                       onChange={handleInputChange}
                       placeholder="Enter quiz description"
-                      className="min-h-[100px] border-teal-200 focus:border-teal-500 focus:ring-teal-500/20"
+                      className="min-h-[100px] rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                     />
                   </div>
                 </CardContent>
               </Card>
 
-          {/* Questions */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-teal-800">Questions</h2>
-              <Button
-                type="button"
-                onClick={addQuestion}
-                className="group transition-all duration-300 hover:scale-105 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600"
-                aria-label="Add question"
-              >
-                <PlusCircle className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                Add Question
-              </Button>
-            </div>
+              {/* Questions */}
+              <div className="space-y-6 pt-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <h2 className="text-xl md:text-2xl font-bold font-display">Questions</h2>
+                  <Button
+                    type="button"
+                    onClick={addQuestion}
+                    className="rounded-xl bg-gradient-to-r from-violet-600 to-violet-500 text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all duration-300 hover:-translate-y-0.5"
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" /> Add Question
+                  </Button>
+                </div>
 
-            {quizData.questions.map((question, questionIndex) => (
-              <Card
-                key={questionIndex}
-                className="transition-all duration-300 hover:shadow-md relative overflow-hidden border-teal-100"
-              >
-                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-teal-500 to-cyan-500"></div>
+                {quizData.questions.map((question, questionIndex) => (
+                  <Card
+                    key={questionIndex}
+                    className="glass-card rounded-2xl relative overflow-hidden border-0 shadow-none border-t border-t-white/10"
+                  >
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-violet-500 to-cyan-500"></div>
 
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg text-teal-800">Question {questionIndex + 1}</CardTitle>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeQuestion(questionIndex)}
-                      className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
-                      disabled={quizData.questions.length === 1}
-                      aria-label={`Remove question ${questionIndex + 1}`}
-                      title={`Remove question ${questionIndex + 1}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor={`question-${questionIndex}`} className="text-teal-700">
-                      Question Text <span className="text-red-500">*</span>
-                    </Label>
-                    <Textarea
-                      id={`question-${questionIndex}`}
-                      value={question.question}
-                      onChange={(e) => handleQuestionChange(questionIndex, "question", e.target.value)}
-                      placeholder="Enter your question"
-                      className={`border-teal-200 focus:border-teal-500 focus:ring-teal-500/20 ${errors[`question_${questionIndex}`] ? "border-red-500" : ""}`}
-                    />
-                    {errors[`question_${questionIndex}`] && (
-                      <p className="text-sm text-red-500">{errors[`question_${questionIndex}`]}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-teal-700">
-                        Options <span className="text-red-500">*</span>
-                      </Label>
-                      {errors[`question_${questionIndex}_options`] && (
-                        <p className="text-sm text-red-500">{errors[`question_${questionIndex}_options`]}</p>
-                      )}
-                    </div>
-
-                    {question.options.map((option, optionIndex) => (
-                      <div key={optionIndex} className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          id={`correct-${questionIndex}-${optionIndex}`}
-                          name={`correct-${questionIndex}`}
-                          checked={question.correctAnswer === optionIndex}
-                          onChange={() => handleQuestionChange(questionIndex, "correctAnswer", optionIndex)}
-                          className="h-4 w-4 text-teal-600 border-teal-300 focus:ring-teal-500"
-                          aria-label={`Set option ${optionIndex + 1} as correct answer`}
-                        />
-                        <Label
-                          htmlFor={`correct-${questionIndex}-${optionIndex}`}
-                          className="flex-shrink-0 w-24 text-teal-700"
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">Question {questionIndex + 1}</CardTitle>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeQuestion(questionIndex)}
+                          className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                          disabled={quizData.questions.length === 1}
+                          title={`Remove question ${questionIndex + 1}`}
                         >
-                          {optionIndex === question.correctAnswer ? "Correct" : "Option"} {optionIndex + 1}
-                        </Label>
-                        <Input
-                          value={option}
-                          onChange={(e) =>
-                            handleQuestionChange(questionIndex, "options", [optionIndex, e.target.value])
-                          }
-                          placeholder={`Option ${optionIndex + 1}`}
-                          className={`border-teal-200 focus:border-teal-500 focus:ring-teal-500/20 ${
-                            option.trim() === "" && errors[`question_${questionIndex}_options`] ? "border-red-500" : ""
-                          }`}
-                          aria-label={`Option ${optionIndex + 1}`}
-                        />
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    </CardHeader>
 
-          {/* Submit Button */}
-          <div className="flex justify-end space-x-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push("/dashboard")}
-              disabled={isLoading}
-              className="border-teal-200 text-teal-700 hover:bg-teal-50"
-              aria-label="Cancel and return to dashboard"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="min-w-[120px] group transition-all duration-300 hover:scale-105 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600"
-              aria-label="Save quiz"
-            >
-              {isLoading ? (
-                <>
-                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                  Save Quiz
-                </>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor={`question-${questionIndex}`}>
+                          Question Text <span className="text-red-500">*</span>
+                        </Label>
+                        <Textarea
+                          id={`question-${questionIndex}`}
+                          value={question.question}
+                          onChange={(e) => handleQuestionChange(questionIndex, "question", e.target.value)}
+                          placeholder="What is..."
+                          className={`rounded-xl bg-secondary/50 border-border focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 min-h-[80px] ${errors[`question_${questionIndex}`] ? "border-red-500 focus:ring-red-500/30 focus:border-red-500" : ""}`}
+                        />
+                        {errors[`question_${questionIndex}`] && (
+                          <p className="text-sm text-red-500 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-red-500" />{errors[`question_${questionIndex}`]}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Label>
+                            Options <span className="text-red-500">*</span>
+                          </Label>
+                          {errors[`question_${questionIndex}_options`] && (
+                            <p className="text-sm text-red-500">{errors[`question_${questionIndex}_options`]}</p>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {question.options.map((option, optionIndex) => (
+                            <div key={optionIndex} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                              question.correctAnswer === optionIndex 
+                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10" 
+                                : "border-border bg-secondary/30"
+                            }`}>
+                              <input
+                                type="radio"
+                                id={`correct-${questionIndex}-${optionIndex}`}
+                                name={`correct-${questionIndex}`}
+                                checked={question.correctAnswer === optionIndex}
+                                onChange={() => handleQuestionChange(questionIndex, "correctAnswer", optionIndex)}
+                                className="h-4 w-4 text-emerald-500 focus:ring-emerald-500 border-border bg-background cursor-pointer"
+                              />
+                              <Label
+                                htmlFor={`correct-${questionIndex}-${optionIndex}`}
+                                className={`flex-shrink-0 w-16 text-sm font-medium cursor-pointer ${question.correctAnswer === optionIndex ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}`}
+                              >
+                                {question.correctAnswer === optionIndex ? "Correct" : `Opt ${optionIndex + 1}`}
+                              </Label>
+                              <Input
+                                value={option}
+                                onChange={(e) =>
+                                  handleQuestionChange(questionIndex, "options", [optionIndex, e.target.value])
+                                }
+                                placeholder={`Enter option ${optionIndex + 1}`}
+                                className={`h-9 border-0 bg-background/50 focus-visible:ring-1 focus-visible:ring-violet-500 ${
+                                  option.trim() === "" && errors[`question_${questionIndex}_options`] ? "border border-red-500 ring-1 ring-red-500" : ""
+                                }`}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Error Summary */}
+              {Object.keys(errors).length > 0 && (
+                <Alert variant="destructive" className="bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-900">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Validation Error</AlertTitle>
+                  <AlertDescription>Please fix the highlighted errors above before submitting your quiz.</AlertDescription>
+                </Alert>
               )}
-            </Button>
-          </div>
 
-          {/* Error Summary */}
-          {Object.keys(errors).length > 0 && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>Please fix the errors above before submitting.</AlertDescription>
-            </Alert>
-          )}
-        </form>
+              {/* Submit Buttons */}
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-border/50">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/dashboard")}
+                  disabled={isLoading}
+                  className="rounded-xl h-12 px-6"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="rounded-xl h-12 px-8 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all duration-300 font-medium"
+                >
+                  {isLoading ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                  ) : (
+                    <><Save className="h-4 w-4 mr-2" /> Save Quiz</>
+                  )}
+                </Button>
+              </div>
+            </form>
           </>
         ) : (
           /* Success State */
-          <Card className="border-teal-100">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Save className="h-8 w-8 text-white" />
+          <Card className="glass-card rounded-3xl overflow-hidden border-0 shadow-none relative max-w-lg mx-auto">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-cyan-500/5" />
+            <CardHeader className="text-center pt-10 pb-6 relative z-10">
+              <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/20 rotate-3 animate-scale-in">
+                <Save className="h-10 w-10 text-white" />
               </div>
-              <CardTitle className="text-2xl text-teal-800">Quiz Created Successfully!</CardTitle>
-              <CardDescription className="text-teal-600">
-                Your quiz &quot;{quizCreated.title}&quot; is now ready to be shared
+              <CardTitle className="text-2xl font-bold font-display">Quiz Published!</CardTitle>
+              <CardDescription>
+                Your quiz &quot;<span className="font-medium text-foreground">{quizCreated.title}</span>&quot; is live.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="bg-teal-50 rounded-lg p-4 border border-teal-100">
-                <h3 className="font-medium text-teal-800 mb-2">Share Your Quiz</h3>
-                <p className="text-sm text-teal-600 mb-4">
-                  Share this link with others so they can take your quiz:
-                </p>
-                <div className="flex items-center gap-2">
+            <CardContent className="space-y-6 relative z-10">
+              <div className="bg-secondary/50 rounded-2xl p-5 border border-border">
+                <h3 className="font-medium mb-2 text-sm flex items-center gap-2"><Share2 className="h-4 w-4" /> Share Link</h3>
+                <div className="flex items-center gap-2 mb-4">
                   <Input
                     value={`${window.location.origin}/quiz/shared/${quizCreated.shareId}`}
                     readOnly
-                    className="flex-1 border-teal-200 bg-white"
+                    className="h-10 text-sm bg-background/50 border-border font-mono text-muted-foreground truncate"
                   />
-                  <Button
-                    onClick={copyShareLink}
-                    variant="outline"
-                    className="border-teal-200 text-teal-700 hover:bg-teal-50"
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
+                  <Button onClick={copyShareLink} variant="outline" className="h-10 px-4 rounded-xl shrink-0">
                     Copy
                   </Button>
                 </div>
-                {/* QR Code */}
-                <div className="mt-4 flex items-center gap-4">
-                  <div className="bg-white p-2 rounded-md shadow-sm">
-                    <QRCodeSVG value={`${window.location.origin}/quiz/shared/${quizCreated.shareId}`} size={136} />
-                  </div>
-                  <div className="flex-1 text-sm text-teal-600">
-                    <p className="mb-1">Scan this QR code to open the quiz on mobile devices.</p>
-                    <p>Or copy the link above and share it anywhere.</p>
-                  </div>
+                
+                <div className="mt-5 flex items-center justify-center bg-white p-4 rounded-xl mx-auto w-fit">
+                  <QRCodeSVG value={`${window.location.origin}/quiz/shared/${quizCreated.shareId}`} size={140} />
                 </div>
+                <p className="text-xs text-center text-muted-foreground mt-3">Scan to open on a mobile device</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div className="bg-teal-50 rounded-lg p-3 border border-teal-100">
-                  <div className="text-2xl font-bold text-teal-800">{quizCreated.questions?.length || 0}</div>
-                  <div className="text-sm text-teal-600">Questions</div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-secondary/50 rounded-xl p-3 text-center border border-border">
+                  <div className="text-xl font-bold text-foreground">{quizCreated.questions?.length || 0}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mt-1">Questions</div>
                 </div>
-                <div className="bg-teal-50 rounded-lg p-3 border border-teal-100">
-                  <div className="text-2xl font-bold text-teal-800">{quizCreated.difficulty}</div>
-                  <div className="text-sm text-teal-600">Difficulty</div>
+                <div className="bg-secondary/50 rounded-xl p-3 text-center border border-border">
+                  <div className="text-xl font-bold text-foreground">{quizCreated.difficulty?.charAt(0)}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mt-1">Difficulty</div>
                 </div>
-                <div className="bg-teal-50 rounded-lg p-3 border border-teal-100">
-                  <div className="text-2xl font-bold text-teal-800">{quizCreated.timeLimit / 60}m</div>
-                  <div className="text-sm text-teal-600">Time Limit</div>
+                <div className="bg-secondary/50 rounded-xl p-3 text-center border border-border">
+                  <div className="text-xl font-bold text-foreground">{quizCreated.timeLimit / 60}m</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mt-1">Time Limit</div>
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col gap-3">
+            <CardFooter className="flex flex-col gap-3 pb-8 relative z-10">
               <Button
                 onClick={() => router.push(`/quiz/${quizCreated._id}`)}
-                className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white"
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white font-medium shadow-lg shadow-violet-500/25"
               >
                 Take Quiz Now
               </Button>
               <div className="flex gap-3 w-full">
                 <Button
                   variant="outline"
-                  className="flex-1 border-teal-200 text-teal-700 hover:bg-teal-50"
+                  className="flex-1 rounded-xl h-11"
                   onClick={() => router.push("/dashboard")}
                 >
-                  Go to Dashboard
+                  Dashboard
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 border-teal-200 text-teal-700 hover:bg-teal-50"
+                  className="flex-1 rounded-xl h-11"
                   onClick={() => {
                     setQuizCreated(null)
                     setQuizData({
@@ -791,17 +783,11 @@ export default function CreateQuizPage() {
                       topic: topics.length > 0 ? topics[0].name : "",
                       difficulty: "Medium",
                       timeLimit: 600,
-                      questions: [
-                        {
-                          question: "",
-                          options: ["", "", "", ""],
-                          correctAnswer: 0,
-                        },
-                      ],
+                      questions: [{ question: "", options: ["", "", "", ""], correctAnswer: 0 }],
                     })
                   }}
                 >
-                  Create Another Quiz
+                  Create Another
                 </Button>
               </div>
             </CardFooter>

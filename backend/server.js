@@ -9,14 +9,28 @@ require("dotenv").config()
 const app = express()
 const PORT = process.env.PORT || 5000
 
-// Middleware
-app.use(cors())
-app.use(bodyParser.json({ limit: "10mb" })) // Increase payload limit for larger quiz data
+// ─── CORS — allow any origin so shared quizzes work from Vercel/Render/etc ───
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow all origins (browser, Vercel, Netlify, Render, mobile, etc.)
+    callback(null, true)
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+}
+app.use(cors(corsOptions))
+app.options("*", cors(corsOptions)) // Handle pre-flight for all routes
+app.use(bodyParser.json({ limit: "10mb" }))
 
-// MongoDB Connection - removed deprecated options
+// MongoDB Connection - removed deprecated// Connect to MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/quiz-app";
 mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("MongoDB connected"))
+  .connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.error("MongoDB connection error:", err))
 
 // Define User Schema
@@ -64,6 +78,7 @@ const progressSchema = new mongoose.Schema({
   totalQuestions: { type: Number, required: true },
   percentage: { type: Number, required: true },
   timeTaken: { type: Number, required: true },
+  answers: [{ questionIndex: Number, selectedAnswer: Number, isCorrect: Boolean }],
   completedAt: { type: Date, default: Date.now },
 })
 
@@ -76,10 +91,46 @@ const userStatsSchema = new mongoose.Schema({
   bestScore: { type: Number, default: 0 },
   totalTimeSpent: { type: Number, default: 0 },
   topicsExplored: [{ type: String }],
-  achievements: [{ type: String }],
+  achievements: [{
+    id: { type: String },
+    name: { type: String },
+    description: { type: String },
+    icon: { type: String },
+    unlockedAt: { type: Date, default: Date.now },
+  }],
   level: { type: Number, default: 1 },
   experiencePoints: { type: Number, default: 0 },
+  currentStreak: { type: Number, default: 0 },
+  longestStreak: { type: Number, default: 0 },
+  lastActiveDate: { type: String, default: "" },
+  weeklyXP: { type: Number, default: 0 },
+  weeklyStartDate: { type: String, default: "" },
+  perfectScores: { type: Number, default: 0 },
+  topicMastery: { type: Map, of: { 
+    totalAttempts: { type: Number, default: 0 },
+    correctAnswers: { type: Number, default: 0 },
+    averageScore: { type: Number, default: 0 },
+  }, default: {} },
 })
+
+// Achievement Definitions
+const ACHIEVEMENTS = [
+  { id: "first_quiz", name: "First Steps", description: "Complete your first quiz", icon: "🎯", condition: (stats) => stats.totalQuizzesTaken >= 1 },
+  { id: "quiz_5", name: "Getting Started", description: "Complete 5 quizzes", icon: "📝", condition: (stats) => stats.totalQuizzesTaken >= 5 },
+  { id: "quiz_25", name: "Quiz Enthusiast", description: "Complete 25 quizzes", icon: "🔥", condition: (stats) => stats.totalQuizzesTaken >= 25 },
+  { id: "quiz_100", name: "Quiz Master", description: "Complete 100 quizzes", icon: "👑", condition: (stats) => stats.totalQuizzesTaken >= 100 },
+  { id: "perfect_1", name: "Perfect Score", description: "Get 100% on a quiz", icon: "⭐", condition: (stats) => stats.perfectScores >= 1 },
+  { id: "perfect_10", name: "Perfectionist", description: "Get 10 perfect scores", icon: "💎", condition: (stats) => stats.perfectScores >= 10 },
+  { id: "streak_3", name: "On Fire", description: "Maintain a 3-day streak", icon: "🔥", condition: (stats) => stats.longestStreak >= 3 },
+  { id: "streak_7", name: "Week Warrior", description: "Maintain a 7-day streak", icon: "⚡", condition: (stats) => stats.longestStreak >= 7 },
+  { id: "streak_30", name: "Monthly Master", description: "Maintain a 30-day streak", icon: "🏆", condition: (stats) => stats.longestStreak >= 30 },
+  { id: "level_5", name: "Rising Star", description: "Reach level 5", icon: "🌟", condition: (stats) => stats.level >= 5 },
+  { id: "level_10", name: "Knowledge Seeker", description: "Reach level 10", icon: "🎓", condition: (stats) => stats.level >= 10 },
+  { id: "topics_5", name: "Explorer", description: "Try quizzes from 5 different topics", icon: "🗺️", condition: (stats) => (stats.topicsExplored || []).length >= 5 },
+  { id: "speed_demon", name: "Speed Demon", description: "Complete a quiz in under 60 seconds", icon: "⚡", condition: (stats, extra) => extra && extra.timeTaken < 60 },
+  { id: "creator", name: "Quiz Creator", description: "Create your first quiz", icon: "✏️", condition: (stats) => stats.totalQuizzesCreated >= 1 },
+  { id: "score_90", name: "High Achiever", description: "Score above 90% average", icon: "📈", condition: (stats) => stats.averageScore >= 90 },
+]
 
 // Create Models
 const User = mongoose.model("User", userSchema)
@@ -370,9 +421,10 @@ app.get("/api/quizzes/shared/:shareId", async (req, res) => {
 // Submit Quiz Progress
 app.post("/api/progress", authenticateToken, async (req, res) => {
   try {
-    const { quizId, score, totalQuestions, timeTaken } = req.body
+    const { quizId, score, totalQuestions, timeTaken, answers } = req.body
     
     const percentage = Math.round((score / totalQuestions) * 100)
+    const isPerfect = percentage === 100
     
     // Create progress record
     const progress = new Progress({
@@ -382,6 +434,7 @@ app.post("/api/progress", authenticateToken, async (req, res) => {
       totalQuestions,
       percentage,
       timeTaken,
+      answers: answers || [],
     })
     
     await progress.save()
@@ -389,18 +442,65 @@ app.post("/api/progress", authenticateToken, async (req, res) => {
     // Update quiz play count
     await Quiz.findByIdAndUpdate(quizId, { $inc: { plays: 1 } })
     
+    // Calculate streak
+    const today = new Date().toISOString().split("T")[0]
+    let existingStats = await UserStats.findOne({ userId: req.user.id })
+    
+    let streakUpdate = {}
+    if (existingStats) {
+      const lastDate = existingStats.lastActiveDate
+      if (lastDate !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]
+        if (lastDate === yesterday) {
+          // Continue streak
+          const newStreak = (existingStats.currentStreak || 0) + 1
+          streakUpdate = {
+            currentStreak: newStreak,
+            longestStreak: Math.max(newStreak, existingStats.longestStreak || 0),
+            lastActiveDate: today,
+          }
+        } else if (!lastDate) {
+          // First ever activity
+          streakUpdate = { currentStreak: 1, longestStreak: 1, lastActiveDate: today }
+        } else {
+          // Streak broken
+          streakUpdate = {
+            currentStreak: 1,
+            longestStreak: Math.max(1, existingStats.longestStreak || 0),
+            lastActiveDate: today,
+          }
+        }
+      }
+    } else {
+      streakUpdate = { currentStreak: 1, longestStreak: 1, lastActiveDate: today }
+    }
+
+    // Calculate XP earned
+    const baseXP = Math.floor(percentage / 10) + 5
+    const streakBonus = Math.min((streakUpdate.currentStreak || existingStats?.currentStreak || 0) * 2, 20)
+    const perfectBonus = isPerfect ? 15 : 0
+    const totalXP = baseXP + streakBonus + perfectBonus
+    
+    const quizData = await Quiz.findById(quizId)
+    const topicName = quizData?.topic || "General"
+    
     // Update user stats
+    const avgScore = await calculateAverageScore(req.user.id)
     let stats = await UserStats.findOneAndUpdate(
       { userId: req.user.id },
       {
         $inc: {
           totalQuizzesTaken: 1,
           totalTimeSpent: timeTaken,
-          experiencePoints: Math.floor(percentage / 10) + 5,
+          experiencePoints: totalXP,
+          perfectScores: isPerfect ? 1 : 0,
         },
-        $max: { bestScore: Math.max(score, percentage) },
-        $set: { averageScore: await calculateAverageScore(req.user.id) },
-        $addToSet: { topicsExplored: (await Quiz.findById(quizId)).topic },
+        $max: { bestScore: percentage },
+        $set: { 
+          averageScore: avgScore,
+          ...streakUpdate,
+        },
+        $addToSet: { topicsExplored: topicName },
       },
       { upsert: true, new: true }
     )
@@ -412,7 +512,32 @@ app.post("/api/progress", authenticateToken, async (req, res) => {
     if (newLevel > stats.level) {
       stats = await UserStats.findOneAndUpdate(
         { userId: req.user.id },
-        { level: newLevel, $push: { achievements: `Level ${newLevel}` } },
+        { level: newLevel },
+        { new: true }
+      )
+    }
+    
+    // Check for new achievements
+    const newAchievements = []
+    const existingIds = (stats.achievements || []).map(a => typeof a === 'string' ? a : a.id)
+    
+    for (const ach of ACHIEVEMENTS) {
+      if (existingIds.includes(ach.id)) continue
+      if (ach.condition(stats, { timeTaken, percentage })) {
+        newAchievements.push({
+          id: ach.id,
+          name: ach.name,
+          description: ach.description,
+          icon: ach.icon,
+          unlockedAt: new Date(),
+        })
+      }
+    }
+    
+    if (newAchievements.length > 0) {
+      stats = await UserStats.findOneAndUpdate(
+        { userId: req.user.id },
+        { $push: { achievements: { $each: newAchievements } } },
         { new: true }
       )
     }
@@ -424,6 +549,10 @@ app.post("/api/progress", authenticateToken, async (req, res) => {
       leveledUp,
       previousLevel,
       newLevel,
+      newAchievements,
+      xpEarned: totalXP,
+      streakBonus,
+      perfectBonus,
     })
   } catch (error) {
     console.error("Submit progress error:", error)
@@ -448,19 +577,122 @@ app.get("/api/progress", authenticateToken, async (req, res) => {
 // Get User Stats
 app.get("/api/stats", authenticateToken, async (req, res) => {
   try {
-    const stats = await UserStats.findOne({ userId: req.user.id })
+    let stats = await UserStats.findOne({ userId: req.user.id })
       .populate("userId", "username email")
     
     if (!stats) {
-      // Create default stats if none exist
       const newStats = new UserStats({ userId: req.user.id })
       await newStats.save()
-      res.json(newStats)
-    } else {
-      res.json(stats)
+      stats = newStats
     }
+    
+    // Check if streak should be reset (missed a day)
+    const today = new Date().toISOString().split("T")[0]
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]
+    if (stats.lastActiveDate && stats.lastActiveDate !== today && stats.lastActiveDate !== yesterday) {
+      stats.currentStreak = 0
+      await stats.save()
+    }
+    
+    res.json(stats)
   } catch (error) {
     console.error("Get stats error:", error)
+    res.status(500).json({ message: "Server error" })
+  }
+})
+
+// Get Global Leaderboard
+app.get("/api/leaderboard", async (req, res) => {
+  try {
+    const period = req.query.period || "all" // all, weekly, monthly
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100)
+    
+    let matchStage = {}
+    if (period === "weekly") {
+      const weekAgo = new Date(Date.now() - 7 * 86400000)
+      matchStage = { completedAt: { $gte: weekAgo } }
+    } else if (period === "monthly") {
+      const monthAgo = new Date(Date.now() - 30 * 86400000)
+      matchStage = { completedAt: { $gte: monthAgo } }
+    }
+    
+    const leaderboard = await User.aggregate([
+      { $match: { username: { $ne: "admin" } } },
+      { $lookup: {
+        from: "progresses",
+        localField: "_id",
+        foreignField: "userId",
+        as: "allProgress",
+      }},
+      { $addFields: {
+        relevantProgress: {
+          $filter: {
+            input: "$allProgress",
+            as: "p",
+            cond: period === "all" ? true : { $gte: ["$$p.completedAt", period === "weekly" ? new Date(Date.now() - 7 * 86400000) : new Date(Date.now() - 30 * 86400000)] }
+          }
+        }
+      }},
+      { $project: {
+        username: 1,
+        totalScore: { $sum: "$relevantProgress.percentage" },
+        quizzesTaken: { $size: "$relevantProgress" },
+        averageScore: { $avg: "$relevantProgress.percentage" },
+        bestScore: { $max: "$relevantProgress.percentage" },
+      }},
+      { $lookup: {
+        from: "userstats",
+        localField: "_id",
+        foreignField: "userId",
+        as: "stats",
+      }},
+      { $unwind: { path: "$stats", preserveNullAndEmptyArrays: true } },
+      { $project: {
+        _id: 1,
+        username: 1,
+        totalScore: { $round: [{ $ifNull: ["$totalScore", 0] }, 0] },
+        quizzesTaken: { $ifNull: ["$quizzesTaken", 0] },
+        averageScore: { $round: [{ $ifNull: ["$averageScore", 0] }, 1] },
+        bestScore: { $ifNull: ["$bestScore", 0] },
+        level: { $ifNull: ["$stats.level", 1] },
+        currentStreak: { $ifNull: ["$stats.currentStreak", 0] },
+        experiencePoints: { $ifNull: ["$stats.experiencePoints", 0] },
+      }},
+      { $sort: { totalScore: -1, experiencePoints: -1, username: 1 } },
+      { $limit: limit },
+    ])
+    
+    // Add rank
+    const ranked = leaderboard.map((entry, idx) => ({
+      ...entry,
+      rank: idx + 1,
+    }))
+    
+    res.json(ranked)
+  } catch (error) {
+    console.error("Leaderboard error:", error)
+    res.status(500).json({ message: "Server error" })
+  }
+})
+
+// Get all achievement definitions
+app.get("/api/achievements", authenticateToken, async (req, res) => {
+  try {
+    const stats = await UserStats.findOne({ userId: req.user.id })
+    const unlockedIds = (stats?.achievements || []).map(a => typeof a === 'string' ? a : a.id)
+    
+    const allAchievements = ACHIEVEMENTS.map(ach => ({
+      id: ach.id,
+      name: ach.name,
+      description: ach.description,
+      icon: ach.icon,
+      unlocked: unlockedIds.includes(ach.id),
+      unlockedAt: (stats?.achievements || []).find(a => (typeof a === 'string' ? a : a.id) === ach.id)?.unlockedAt || null,
+    }))
+    
+    res.json(allAchievements)
+  } catch (error) {
+    console.error("Achievements error:", error)
     res.status(500).json({ message: "Server error" })
   }
 })
@@ -1588,20 +1820,16 @@ const ensureQuizImages = async () => {
 }
 
 const topicImageUrl = {
-  Mathematics:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Euclid%27s_Elements_Book_1_Proposition_47.svg/640px-Euclid%27s_Elements_Book_1_Proposition_47.svg.png",
-  Science: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Periodic_table_large.svg/640px-Periodic_table_large.svg.png",
-  History:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Declaration_of_Independence_%281817%29.jpg/640px-Declaration_of_Independence_%281817%29.jpg",
-  Geography: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/640px-World_map_-_low_resolution.svg.png",
-  Literature: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Bookshelf.jpg/640px-Bookshelf.jpg",
-  Technology:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/PCB_Overview.jpg/640px-PCB_Overview.jpg",
-  Sports: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Soccer_ball.svg/512px-Soccer_ball.svg.png",
-  Music: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Musical_note_nicu_buculei_01.svg/512px-Musical_note_nicu_buculei_01.svg.png",
-  Movies: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Clapperboard.svg/512px-Clapperboard.svg.png",
-  "General Knowledge":
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Brain_with_text.svg/640px-Brain_with_text.svg.png",
+  Mathematics: "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=800&auto=format&fit=crop",
+  Science: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?q=80&w=800&auto=format&fit=crop",
+  History: "https://images.unsplash.com/photo-1461360228754-6e81c478b882?q=80&w=800&auto=format&fit=crop",
+  Geography: "https://images.unsplash.com/photo-1521295121783-8a321d551ad2?q=80&w=800&auto=format&fit=crop",
+  Literature: "https://images.unsplash.com/photo-1491841573634-28140fc7ced7?q=80&w=800&auto=format&fit=crop",
+  Technology: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop",
+  Sports: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=800&auto=format&fit=crop",
+  Music: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=800&auto=format&fit=crop",
+  Movies: "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=800&auto=format&fit=crop",
+  "General Knowledge": "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=800&auto=format&fit=crop",
 }
 
 const ensureQuizzesForAllTopics = async () => {
