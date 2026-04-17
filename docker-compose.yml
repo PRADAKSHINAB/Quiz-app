@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+
+  backend:
+    build: ./backend
+    container_name: quiz-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      # Changed to MONGODB_URI to match your backend/server.js exactly
+      - MONGODB_URI=mongodb://db:27017/quizdb
+
+  frontend:
+    build: ./frontend
+    container_name: quiz-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      # Must be localhost because this URL is fetched by the user's web browser!
+      # The browser doesn't know about Docker's internal "backend" hostname.
+      - NEXT_PUBLIC_API_URL=http://localhost:5000/api
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+  db:
+    image: mongo:6
+    container_name: quiz-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
