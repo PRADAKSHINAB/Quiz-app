@@ -6,7 +6,7 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 writeFile file: 'backend/.env', text: '''PORT=5000
-MONGODB_URI=mongodb://localhost:27018/quiz-app
+MONGODB_URI=mongodb://db:27017/quizdb
 JWT_SECRET=your_super_secret_jwt_key_12345
 NODE_ENV=development
 '''
@@ -18,19 +18,19 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
         stage('Stop Old Containers') {
             steps {
-                bat 'docker compose down'
+                sh 'docker compose down'
             }
         }
 
         stage('Build & Start') {
             steps {
-                bat 'docker compose up -d --build'
+                sh 'docker compose up -d --build'
             }
         }
 
         stage('Verify') {
             steps {
-                bat 'docker ps'
+                sh 'docker ps'
             }
         }
     }
