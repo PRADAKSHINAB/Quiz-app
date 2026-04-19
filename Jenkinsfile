@@ -1,21 +1,29 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:24.0.5'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     stages {
-        stage('Build') {
+
+        stage('Clone Code') {
             steps {
-                sh 'docker compose build'
+                git 'https://github.com/PRADAKSHINAB/Quiz-app.git'
             }
         }
 
-        stage('Run') {
+        stage('Stop Old Containers') {
             steps {
-                sh 'docker compose up -d'
+                bat 'docker compose down'
+            }
+        }
+
+        stage('Build & Start') {
+            steps {
+                bat 'docker compose up -d --build'
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                bat 'docker ps'
             }
         }
     }
