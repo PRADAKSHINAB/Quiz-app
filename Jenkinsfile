@@ -3,9 +3,16 @@ pipeline {
 
     stages {
 
-        stage('Clone Code') {
+        stage('Setup Environment') {
             steps {
-                git 'https://github.com/PRADAKSHINAB/Quiz-app.git'
+                writeFile file: 'backend/.env', text: '''PORT=5000
+MONGODB_URI=mongodb://localhost:27018/quiz-app
+JWT_SECRET=your_super_secret_jwt_key_12345
+NODE_ENV=development
+'''
+                writeFile file: 'frontend/.env.local', text: '''NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+'''
             }
         }
 

@@ -9,6 +9,8 @@ services:
       - "5000:5000"
     depends_on:
       - db
+    env_file:
+      - ./backend/.env
     environment:
       # Changed to MONGODB_URI to match your backend/server.js exactly
       - MONGODB_URI=mongodb://db:27017/quizdb
@@ -20,6 +22,8 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    env_file:
+      - ./frontend/.env.local
     environment:
       # Must be localhost because this URL is fetched by the user's web browser!
       # The browser doesn't know about Docker's internal "backend" hostname.
