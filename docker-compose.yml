@@ -27,10 +27,10 @@ services:
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
 
   db:
-    image: mongo:6
+    image: mongo:7
     container_name: quiz-db
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongo_data:/data/db
 
