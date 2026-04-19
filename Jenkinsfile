@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:24.0.5-cli'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     stages {
 
@@ -23,7 +18,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
         stage('Stop Old Containers') {
             steps {
-                sh 'docker compose down'
+                sh 'docker compose down || true'
             }
         }
 
