@@ -1,8 +1,11 @@
 pipeline {
     agent any
 
-    stages {
+    triggers {
+        pollSCM('* * * * *')
+    }
 
+    stages {
         stage('Setup Environment') {
             steps {
                 writeFile file: 'backend/.env', text: '''PORT=5000
@@ -18,19 +21,19 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
         stage('Stop Old Containers') {
             steps {
-                sh 'docker compose down || true'
+                bat 'docker compose down || exit 0'
             }
         }
 
         stage('Build & Start') {
             steps {
-                sh 'docker compose up -d --build'
+                bat 'docker compose up -d --build'
             }
         }
 
         stage('Verify') {
             steps {
-                sh 'docker ps'
+                bat 'docker ps'
             }
         }
     }
