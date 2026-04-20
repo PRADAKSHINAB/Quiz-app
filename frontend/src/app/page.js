@@ -31,9 +31,9 @@ const TOPIC_GRADIENTS = [
 
 function DifficultyBadge({ difficulty }) {
   const map = {
-    Easy:   "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 badge-easy",
+    Easy: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 badge-easy",
     Medium: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 badge-medium",
-    Hard:   "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300 badge-hard",
+    Hard: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300 badge-hard",
   }
   return (
     <Badge className={`text-xs font-semibold px-2.5 py-0.5 ${map[difficulty] || map.Easy}`}>
@@ -222,7 +222,7 @@ export default function Home() {
         setTopics(topicsData.slice(0, 8))
         setFeaturedQuizzes(quizzesData)
         setIsLoggedIn(isAuthenticated())
-        getLeaderboard("weekly", 5).then(data => setTopLeaders(data)).catch(() => {})
+        getLeaderboard("weekly", 5).then(data => setTopLeaders(data)).catch(() => { })
       } catch (error) {
         console.error("Error fetching data:", error)
       } finally {
@@ -235,10 +235,10 @@ export default function Home() {
   }, [])
 
   const stats = [
-    { icon: Users,    label: "Active Learners",    value: "10K+",  color: "text-violet-500", glowColor: "rgba(124,58,237,0.4)" },
-    { icon: BookOpen, label: "Quizzes Available",   value: "500+",  color: "text-cyan-500",   glowColor: "rgba(6,182,212,0.4)" },
-    { icon: Trophy,   label: "Achievements",        value: "15+",   color: "text-amber-500",  glowColor: "rgba(245,158,11,0.4)" },
-    { icon: Flame,    label: "Daily Streaks",       value: "∞",     color: "text-orange-500", glowColor: "rgba(249,115,22,0.4)" },
+    { icon: Users, label: "Active Learners", value: "5K+", color: "text-violet-500", glowColor: "rgba(124,58,237,0.4)" },
+    { icon: BookOpen, label: "Quizzes Available", value: "500+", color: "text-cyan-500", glowColor: "rgba(6,182,212,0.4)" },
+    { icon: Trophy, label: "Achievements", value: "15+", color: "text-amber-500", glowColor: "rgba(245,158,11,0.4)" },
+    { icon: Flame, label: "Daily Streaks", value: "∞", color: "text-orange-500", glowColor: "rgba(249,115,22,0.4)" },
   ]
 
   return (
@@ -464,12 +464,12 @@ export default function Home() {
               <h2 className="text-2xl md:text-3xl font-bold font-display mb-8 section-heading">Why QuizMaster?</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger-children">
                 {[
-                  { icon: Brain,  title: "Adaptive Learning",        desc: "AI tracks your weak areas and reinforces them with spaced repetition.",        gradient: "from-violet-500 to-purple-600", glow: "rgba(124,58,237,0.25)" },
-                  { icon: Flame,  title: "Daily Streaks",            desc: "Build momentum with daily challenges and earn streak bonuses.",                 gradient: "from-orange-500 to-red-500",   glow: "rgba(249,115,22,0.25)" },
-                  { icon: Trophy, title: "Achievements",             desc: "Unlock 15+ achievements as you hit milestones in your learning.",               gradient: "from-amber-500 to-yellow-500", glow: "rgba(245,158,11,0.25)" },
-                  { icon: Target, title: "Leaderboard",              desc: "Compete with learners worldwide and climb the weekly rankings.",                 gradient: "from-cyan-500 to-blue-500",   glow: "rgba(6,182,212,0.25)" },
-                  { icon: Zap,    title: "AI Quiz Generator",        desc: "Generate custom quizzes on any topic instantly with AI.",                       gradient: "from-emerald-500 to-teal-500",glow: "rgba(16,185,129,0.25)" },
-                  { icon: Award,  title: "Performance Analytics",    desc: "Detailed insights into your progress across all topics.",                       gradient: "from-pink-500 to-rose-500",   glow: "rgba(236,72,153,0.25)" },
+                  { icon: Brain, title: "Adaptive Learning", desc: "AI tracks your weak areas and reinforces them with spaced repetition.", gradient: "from-violet-500 to-purple-600", glow: "rgba(124,58,237,0.25)" },
+                  { icon: Flame, title: "Daily Streaks", desc: "Build momentum with daily challenges and earn streak bonuses.", gradient: "from-orange-500 to-red-500", glow: "rgba(249,115,22,0.25)" },
+                  { icon: Trophy, title: "Achievements", desc: "Unlock 15+ achievements as you hit milestones in your learning.", gradient: "from-amber-500 to-yellow-500", glow: "rgba(245,158,11,0.25)" },
+                  { icon: Target, title: "Leaderboard", desc: "Compete with learners worldwide and climb the weekly rankings.", gradient: "from-cyan-500 to-blue-500", glow: "rgba(6,182,212,0.25)" },
+                  { icon: Zap, title: "AI Quiz Generator", desc: "Generate custom quizzes on any topic instantly with AI.", gradient: "from-emerald-500 to-teal-500", glow: "rgba(16,185,129,0.25)" },
+                  { icon: Award, title: "Performance Analytics", desc: "Detailed insights into your progress across all topics.", gradient: "from-pink-500 to-rose-500", glow: "rgba(236,72,153,0.25)" },
                 ].map((feature) => (
                   <TiltCard
                     key={feature.title}
@@ -508,12 +508,11 @@ export default function Home() {
                   <div className="space-y-2">
                     {topLeaders.map((leader, idx) => (
                       <div key={leader._id || idx} className="flex items-center gap-3 p-3 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-500/5 transition-all duration-200 leaderboard-row leaderboard-row-enhanced">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shadow-sm ${
-                          idx === 0 ? "bg-gradient-to-br from-amber-400 to-amber-600 text-white rank-gold" :
-                          idx === 1 ? "bg-gradient-to-br from-gray-300 to-gray-500 text-white rank-silver" :
-                          idx === 2 ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white rank-bronze" :
-                          "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                        }`}>
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shadow-sm ${idx === 0 ? "bg-gradient-to-br from-amber-400 to-amber-600 text-white rank-gold" :
+                            idx === 1 ? "bg-gradient-to-br from-gray-300 to-gray-500 text-white rank-silver" :
+                              idx === 2 ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white rank-bronze" :
+                                "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                          }`}>
                           {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -611,8 +610,8 @@ export default function Home() {
             {/* Decorative animated rings */}
             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none overflow-hidden">
               <div className="absolute top-8 left-8 w-40 h-40 rounded-full border-4 border-white cta-deco-ring" />
-              <div className="absolute bottom-12 right-12 w-64 h-64 rounded-full border-8 border-white" style={{animation: "ctaCircleSpin 30s linear infinite reverse"}} />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border-2 border-white" style={{animation: "ctaCircleSpin 40s linear infinite"}} />
+              <div className="absolute bottom-12 right-12 w-64 h-64 rounded-full border-8 border-white" style={{ animation: "ctaCircleSpin 30s linear infinite reverse" }} />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border-2 border-white" style={{ animation: "ctaCircleSpin 40s linear infinite" }} />
             </div>
 
             {/* Floating sparkles */}
@@ -620,15 +619,15 @@ export default function Home() {
               <Sparkles className="h-6 w-6 text-yellow-300 sparkle" />
             </div>
             <div className="absolute bottom-10 left-20 pointer-events-none">
-              <Sparkles className="h-4 w-4 text-white sparkle" style={{animationDelay: "0.6s"}} />
+              <Sparkles className="h-4 w-4 text-white sparkle" style={{ animationDelay: "0.6s" }} />
             </div>
             <div className="absolute top-1/2 right-10 pointer-events-none">
-              <Sparkles className="h-5 w-5 text-pink-300 sparkle" style={{animationDelay: "1.2s"}} />
+              <Sparkles className="h-5 w-5 text-pink-300 sparkle" style={{ animationDelay: "1.2s" }} />
             </div>
 
             {/* Animated glow orb inside CTA */}
             <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-white/10 blur-3xl animate-pulse-soft pointer-events-none" />
-            <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl animate-pulse-soft pointer-events-none" style={{animationDelay:"1s"}} />
+            <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/10 blur-3xl animate-pulse-soft pointer-events-none" style={{ animationDelay: "1s" }} />
 
             <h2 className="text-3xl md:text-5xl font-bold font-display mb-6 relative z-10 neon-text">
               Ready to start your learning journey?
