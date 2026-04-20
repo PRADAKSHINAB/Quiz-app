@@ -235,7 +235,7 @@ export default function Home() {
   }, [])
 
   const stats = [
-    { icon: Users, label: "Active Learners", value: "10K+", color: "text-violet-500", glowColor: "rgba(124,58,237,0.4)" },
+    { icon: Users, label: "Active Learners", value: "5K+", color: "text-violet-500", glowColor: "rgba(124,58,237,0.4)" },
     { icon: BookOpen, label: "Quizzes Available", value: "500+", color: "text-cyan-500", glowColor: "rgba(6,182,212,0.4)" },
     { icon: Trophy, label: "Achievements", value: "15+", color: "text-amber-500", glowColor: "rgba(245,158,11,0.4)" },
     { icon: Flame, label: "Daily Streaks", value: "∞", color: "text-orange-500", glowColor: "rgba(249,115,22,0.4)" },
