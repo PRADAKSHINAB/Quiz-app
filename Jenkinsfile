@@ -21,7 +21,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
         stage('Stop Old Containers') {
             steps {
-                bat 'docker rm -f quiz-backend quiz-frontend quiz-db || exit 0'
+                bat 'docker rm -f quiz-backend quiz-frontend quiz-db quiz-prometheus quiz-grafana || exit 0'
                 bat 'docker compose down || exit 0'
             }
         }

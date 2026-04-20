@@ -23,6 +23,19 @@ app.use(cors(corsOptions))
 app.options("*", cors(corsOptions)) // Handle pre-flight for all routes
 app.use(bodyParser.json({ limit: "10mb" }))
 
+// Prometheus Metrics Middleware
+const promBundle = require("express-prom-bundle")
+const metricsMiddleware = promBundle({
+  includeMethod: true, 
+  includePath: true, 
+  includeStatusCode: true, 
+  includeUp: true,
+  promClient: {
+    collectDefaultMetrics: {}
+  }
+})
+app.use(metricsMiddleware)
+
 // MongoDB Connection - removed deprecated// Connect to MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/quiz-app";
 mongoose
