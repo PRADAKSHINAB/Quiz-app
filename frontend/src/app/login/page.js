@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
-import { login, isAuthenticated } from "@/lib/auth"
+import { login, isAuthenticated, getUser } from "@/lib/auth"
 import { Logo } from "@/components/logo"
 
 export default function LoginPage() {
@@ -21,11 +21,17 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({ email: "", password: "" })
+  const [storedName, setStoredName] = useState("")
 
   useEffect(() => {
     if (isAuthenticated()) {
       router.push("/dashboard")
       return
+    }
+    // Greet returning users by name if a previous session exists
+    const prevUser = getUser()
+    if (prevUser?.name) {
+      setStoredName(prevUser.name.split(" ")[0])
     }
     if (registered) {
       toast({ title: "Registration successful!", description: "Please log in with your new account" })
@@ -69,7 +75,7 @@ export default function LoginPage() {
               <Logo size="large" />
             </div>
             <h1 className="text-3xl font-bold font-display tracking-tight">
-              Welcome Back 👋
+              {storedName ? `Welcome Back, ${storedName}! 👋` : "Welcome Back 👋"}
             </h1>
             <p className="text-sm text-muted-foreground">Sign in to pick up where you left off and keep learning</p>
           </div>
