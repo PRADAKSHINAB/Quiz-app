@@ -69,9 +69,9 @@ export default function LoginPage() {
               <Logo size="large" />
             </div>
             <h1 className="text-3xl font-bold font-display tracking-tight">
-              Welcome back
+              Welcome Back 👋
             </h1>
-            <p className="text-sm text-muted-foreground">Enter your credentials to continue your learning journey</p>
+            <p className="text-sm text-muted-foreground">Sign in to pick up where you left off and keep learning</p>
           </div>
 
           <div className="glass-card rounded-2xl overflow-hidden">
