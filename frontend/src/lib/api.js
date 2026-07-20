@@ -1,11 +1,11 @@
 // API utilities
 import { getToken } from "./auth"
 
-// API base URL — override NEXT_PUBLIC_API_URL in .env.local for production
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+// API base URL — override VITE_API_URL in .env.local for production
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
 
 // Public app URL — used to build shareable quiz links
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || (
+export const APP_URL = import.meta.env.VITE_APP_URL || (
   typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"
 )
 

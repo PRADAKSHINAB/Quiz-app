@@ -1,6 +1,6 @@
 # Quiz App Frontend
 
-This is the frontend for the Quiz Application built with Next.js.
+This is the frontend for the Quiz Application built with **React 18 + Vite**.
 
 ## Setup
 
@@ -18,10 +18,18 @@ The frontend will run on http://localhost:3000 by default.
 
 ## Environment Variables
 
-You can create a `.env.local` file in this directory with the following variable:
+Create a `.env.local` file in this directory with the following variables:
 
 ```
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5000/api
+VITE_APP_URL=http://localhost:3000
 ```
 
 This tells the frontend where to find the backend API.
+
+## Scripts
+
+- `npm run dev` — Start Vite dev server
+- `npm run build` — Build for production (outputs to `dist/`)
+- `npm run preview` — Preview the production build locally
+- `npm run lint` — Run ESLint

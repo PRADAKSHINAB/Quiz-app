@@ -2,7 +2,7 @@
 import { jwtDecode } from "jwt-decode"
 
 // API base URL - make sure this matches your backend server
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
 
 /**
  * Register a new user

@@ -2,10 +2,12 @@ Project Overview: Quiz-app
 
 1. Folder Structure:
 -------------------
-- /frontend: Next.js 14 application using the App Router.
-  - /src/app: Contains pages and layouts (dashboard, quiz, login, etc.).
+- /frontend: React 18 application built with Vite and React Router DOM.
+  - /src/pages: Contains all page components (Dashboard, Quiz, Login, etc.).
   - /src/components: Reusable React components (UI elements, header, etc.).
   - /src/lib: Core logic for API calls, authentication, and utilities.
+  - index.html: Vite HTML entry point with root div.
+  - vite.config.js: Vite build and dev server configuration.
 - /backend: Express.js server providing the REST API.
   - /models: Mongoose schemas defining data structures (User, Quiz, Topic, etc.).
   - server.js: Main server file handling routing, database connection, and auth middleware.
@@ -15,7 +17,7 @@ Project Overview: Quiz-app
 
 2. Technologies Used:
 ---------------------
-- Frontend: Next.js 14, React 18, Tailwind CSS, Radix UI, Lucide Icons, Recharts (for progress).
+- Frontend: React 18, Vite, React Router DOM, Tailwind CSS, Radix UI, Lucide Icons, Recharts (for progress).
 - Backend: Node.js, Express.js, MongoDB, Mongoose (ODM).
 - Authentication: JSON Web Tokens (JWT), Bcrypt (password hashing).
 - Development: Nodemon (backend auto-restart), Concurrent script execution.

@@ -1,15 +1,15 @@
 # Quiz App (Full Stack)
 
-Full-stack quiz application with a Next.js frontend and an Express + MongoDB backend. Users can browse topics, take quizzes, create quizzes, and track progress.
+Full-stack quiz application with a React.js frontend and an Express + MongoDB backend. Users can browse topics, take quizzes, create quizzes, and track progress.
 
 ## Tech Stack
 
-- Frontend: Next.js (App Router), React, Tailwind CSS
+- Frontend: React 18, Vite, React Router DOM, Tailwind CSS
 - Backend: Node.js, Express, MongoDB (Mongoose), JWT auth
 
 ## Project Structure
 
-- `frontend/`: Next.js app (UI + styling)
+- `frontend/`: React app (UI + styling) — built with Vite
 - `backend/`: Express API server + MongoDB models/seed data
 - `run-dev.js`: Starts backend and frontend together
 
@@ -44,7 +44,8 @@ JWT_SECRET=replace-with-a-strong-secret
 Create `frontend/.env.local`:
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5000/api
+VITE_APP_URL=http://localhost:3000
 ```
 
 ## Run (Development)
@@ -68,12 +69,12 @@ From the project root:
 
 From `frontend/`:
 
-- `npm run dev`: Next.js dev server
+- `npm run dev`: Vite dev server
 - `npm run build`: Production build
+- `npm run preview`: Preview production build locally
 - `npm run lint`: Lint
 
 From `backend/`:
 
 - `npm run dev`: Start backend with nodemon
 - `npm start`: Start backend
-
